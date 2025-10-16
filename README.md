@@ -180,9 +180,3 @@ Note: Detailed per-route request/response shapes are defined in the backend cont
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Acknowledgements / TODO
-
-- Based on Vite + React + TypeScript starter, adapted for the UpTask MERN frontend.
-- Backend repository: https://github.com/aaronmasm/Uptask_Backend
-- TODO: Provide full API documentation once available.
