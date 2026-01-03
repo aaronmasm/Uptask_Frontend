@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import api from "@/lib/axios";
+import { csrfService } from "@/lib/csrf";
 import { userSchema } from "@/types/index";
 import type {
   ConfirmToken,
@@ -9,6 +10,7 @@ import type {
   UserLoginForm,
   UserRegistrationForm,
   CheckPasswordForm,
+  CSRFResponse,
 } from "@/types/index";
 
 export async function createAccount(formData: UserRegistrationForm) {
@@ -64,6 +66,7 @@ export async function authenticateUser(formData: UserLoginForm) {
 export async function logoutUser() {
   try {
     await api.post("/auth/logout");
+    csrfService.clearToken(); // Limpiar token CSRF al hacer logout
   } catch (error) {
     if (isAxiosError(error)) {
       throw new Error(error.response?.data.error);
@@ -139,6 +142,18 @@ export async function checkPassword(formData: CheckPasswordForm) {
   } catch (e) {
     if (isAxiosError(e) && e.response) {
       throw new Error(e.response.data.error);
+    }
+  }
+}
+
+export async function getCSRFToken() {
+  try {
+    const url = "auth/csrf-token";
+    const { data } = await api.get<CSRFResponse>(url);
+    return data.csrfToken;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      throw new Error(error.response?.data.error);
     }
   }
 }
