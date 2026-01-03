@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -7,6 +7,7 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
+import { safeNavigation } from "@/utils/navigation";
 import AddMemberForm from "@/components/team/AddMemberForm";
 
 export default function AddMemberModal() {
@@ -15,16 +16,26 @@ export default function AddMemberModal() {
 
   const queryParams = new URLSearchParams(location.search);
   const addMember = queryParams.get("addMember");
-  const show = !!addMember;
+
+  // Estado local sincronizado con URL para control inmediato del modal
+  const [isOpen, setIsOpen] = useState(!!addMember);
+
+  // Sincronizar estado local cuando cambia la URL
+  useEffect(() => {
+    setIsOpen(!!addMember);
+  }, [addMember]);
+
+  // Función para cerrar modal limpiamente
+  const handleClose = () => {
+    const cleanSearch = safeNavigation.clearQueryParam("addMember");
+    navigate(cleanSearch, { replace: true });
+    setIsOpen(false);
+  };
 
   return (
     <>
-      <Transition appear show={show} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-10"
-          onClose={() => navigate(location.pathname, { replace: true })}
-        >
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={handleClose}>
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"

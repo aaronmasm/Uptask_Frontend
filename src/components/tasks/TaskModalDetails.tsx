@@ -1,4 +1,4 @@
-import { Fragment, useEffect, ChangeEvent } from "react";
+import { Fragment, useEffect, useState, ChangeEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,24 +10,38 @@ import {
   TransitionChild,
 } from "@headlessui/react";
 import { getTaskById, updateStatus } from "@/api/task-api";
+import { safeNavigation } from "@/utils/navigation";
 import NotesPanel from "@/components/notes/NotesPanel";
 import { formatDate } from "@/utils/utils";
 import { statusTranslations } from "@/locales/es";
 import type { TaskStatus } from "@/types/index";
 
 export default function TaskModalDetails() {
-  const params = useParams();
-  const projectId = params.projectId!;
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
+  const projectId = params.projectId!;
   const queryParams = new URLSearchParams(location.search);
-  const taskId = queryParams.get("viewTask")!;
+  const taskId = queryParams.get("viewTask");
 
-  const show = !!taskId;
+  // Estado local sincronizado con URL
+  const [isOpen, setIsOpen] = useState(!!taskId);
+
+  // Sincronizar estado local cuando cambia la URL
+  useEffect(() => {
+    setIsOpen(!!taskId);
+  }, [taskId]);
+
+  // Función para cerrar modal limpiamente
+  const handleClose = () => {
+    const cleanSearch = safeNavigation.clearQueryParam("viewTask");
+    navigate(cleanSearch, { replace: true });
+    setIsOpen(false);
+  };
 
   const { data, isError, error } = useQuery({
     queryKey: ["task", taskId],
-    queryFn: async () => await getTaskById({ projectId, taskId }),
+    queryFn: async () => await getTaskById({ projectId, taskId: taskId! }),
     enabled: !!taskId,
     retry: false,
   });
@@ -40,13 +54,13 @@ export default function TaskModalDetails() {
       toast.success(data);
       await queryClient.invalidateQueries({ queryKey: ["project", projectId] });
       await queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      navigate(location.pathname, { replace: true });
+      handleClose();
     },
   });
 
   const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const status = e.target.value as TaskStatus;
-    const data = { projectId, taskId, status };
+    const data = { projectId, taskId: taskId!, status };
     mutate(data);
   };
 
@@ -60,12 +74,8 @@ export default function TaskModalDetails() {
   if (data)
     return (
       <>
-        <Transition appear show={show} as={Fragment}>
-          <Dialog
-            as="div"
-            className="relative z-10"
-            onClose={() => navigate(location.pathname, { replace: true })}
-          >
+        <Transition appear show={isOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-10" onClose={handleClose}>
             <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"

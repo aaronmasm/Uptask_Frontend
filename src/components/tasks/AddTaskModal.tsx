@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -11,21 +11,34 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { createTask } from "@/api/task-api";
+import { safeNavigation } from "@/utils/navigation";
 import TaskForm from "@/components/tasks/TaskForm";
 import type { TaskFormData } from "@/types/index";
 
 export default function AddTaskModal() {
   const navigate = useNavigate();
-
-  /** Leer si modal existe */
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const modalTask = queryParams.get("newTask");
-  const show = !!modalTask;
+
+  // Estado local sincronizado con URL para control inmediato del modal
+  const [isOpen, setIsOpen] = useState(!!modalTask);
+
+  // Sincronizar estado local cuando cambia la URL
+  useEffect(() => {
+    setIsOpen(!!modalTask);
+  }, [modalTask]);
 
   /** Obtener projectId */
   const params = useParams();
   const projectId = params.projectId!;
+
+  // Función para cerrar modal limpiamente
+  const handleClose = () => {
+    const cleanSearch = safeNavigation.clearQueryParam("newTask");
+    navigate(cleanSearch, { replace: true });
+    setIsOpen(false);
+  };
 
   const initialValues: TaskFormData = {
     taskName: "",
@@ -50,7 +63,7 @@ export default function AddTaskModal() {
       });
       toast.success(data);
       reset();
-      navigate(location.pathname, { replace: true });
+      handleClose();
     },
   });
 
@@ -64,12 +77,8 @@ export default function AddTaskModal() {
 
   return (
     <>
-      <Transition appear show={show} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-10"
-          onClose={() => navigate(location.pathname, { replace: true })}
-        >
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={handleClose}>
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"

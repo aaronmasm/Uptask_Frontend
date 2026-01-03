@@ -1,5 +1,5 @@
-import { Fragment } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Fragment, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,18 +13,34 @@ import {
 import ErrorMessage from "@/components/ErrorMessage";
 import { checkPassword } from "@/api/auth-api";
 import { deleteProjectById } from "@/api/project-api";
+import { safeNavigation } from "@/utils/navigation";
 import type { CheckPasswordForm } from "@/types/index";
 
 export default function DeleteProjectModal() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const deleteProjectId = queryParams.get("deleteProject");
+
+  // Estado local sincronizado con URL para control inmediato del modal
+  const [isOpen, setIsOpen] = useState(!!deleteProjectId);
+
+  // Sincronizar estado local cuando cambia la URL
+  useEffect(() => {
+    setIsOpen(!!deleteProjectId);
+  }, [deleteProjectId]);
+
+  // Función para cerrar modal limpiamente
+  const handleClose = () => {
+    const cleanSearch = safeNavigation.clearQueryParam("deleteProject");
+    navigate(cleanSearch, { replace: true });
+    setIsOpen(false);
+  };
+
   const initialValues: CheckPasswordForm = {
     password: "",
   };
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const queryParams = new URLSearchParams(location.search);
-  const deleteProjectId = queryParams.get("deleteProject")!;
-  const show = !!deleteProjectId;
 
   const {
     register,
@@ -45,23 +61,19 @@ export default function DeleteProjectModal() {
     onError: (error) => toast.error(error.message),
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      navigate(location.pathname, { replace: true });
       toast.success(data, { toastId: "check-pass-success" });
+      handleClose();
     },
   });
 
   const handleForm = async (formData: CheckPasswordForm) => {
     await checkUserPasswordMutation.mutateAsync(formData);
-    await deleteProjectMutation.mutateAsync(deleteProjectId);
+    await deleteProjectMutation.mutateAsync(deleteProjectId!);
   };
 
   return (
-    <Transition appear show={show} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-10"
-        onClose={() => navigate(location.pathname, { replace: true })}
-      >
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={handleClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"

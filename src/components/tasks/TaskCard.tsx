@@ -90,7 +90,7 @@ export default function TaskCard({ task, canEdit }: TaskCardProps) {
         <button
           type="button"
           className={`text-xl font-bold text-left cursor-pointer ${titleColor}`}
-          onClick={() => navigate(location.pathname + `?viewTask=${task._id}`)}
+          onClick={() => navigate(`?viewTask=${task._id}`)}
         >
           {task.taskName}
         </button>
@@ -136,9 +136,7 @@ export default function TaskCard({ task, canEdit }: TaskCardProps) {
                   type="button"
                   className={`block w-full text-left px-3 py-1 text-sm leading-6 
                   text-gray-900 cursor-pointer transition-colors duration-200 ${hoverColor}`}
-                  onClick={() =>
-                    navigate(location.pathname + `?viewTask=${task._id}`)
-                  }
+                  onClick={() => navigate(`?viewTask=${task._id}`)}
                 >
                   Ver Tarea
                 </button>
@@ -151,9 +149,7 @@ export default function TaskCard({ task, canEdit }: TaskCardProps) {
                       type="button"
                       className={`block w-full text-left px-3 py-1 text-sm leading-6 
                       text-gray-900 cursor-pointer transition-colors duration-200 ${hoverColor}`}
-                      onClick={() =>
-                        navigate(location.pathname + `?editTaskId=${task._id}`)
-                      }
+                      onClick={() => navigate(`?editTaskId=${task._id}`)}
                     >
                       Editar Tarea
                     </button>
