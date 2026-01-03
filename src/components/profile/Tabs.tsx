@@ -31,9 +31,12 @@ export default function Tabs() {
           id="tabs"
           name="tabs"
           className="block w-full rounded-md border-gray-300 focus:border-purple-800 focus:ring-purple-800"
-          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-            navigate(e.target.value)
-          }
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+            const allowedTabs = ["/profile", "/profile/change-password"];
+            if (allowedTabs.includes(e.target.value)) {
+              navigate(e.target.value);
+            }
+          }}
           value={currentTab}
         >
           {tabs.map((tab) => {

@@ -56,7 +56,7 @@ export default function ProjectTeamView() {
             type="button"
             className=" bg-purple-400 hover:bg-purple-500 px-10 py-3 text-white
             text-xl font-bold cursor-pointer transition-colors"
-            onClick={() => navigate(location.pathname + "?addMember=true")}
+            onClick={() => navigate("?addMember=true")}
           >
             Agregar Colaborador
           </button>
